@@ -7,7 +7,7 @@ import {Loader}  from 'lucide-react';
 import { useRouter } from 'next/navigation'
 
 async function AddNewproposal() {
-    const [selectedAddress, setSelectedAddress] = useState()
+    const [selectedAddress, setSelectedAddress] = useState<{ label: string; value: string; } | null[]>([])
     const [coordinates, setCoordinates] = useState()
     const [loading, setLoading] = useState(false)
     const router = useRouter()
@@ -21,7 +21,7 @@ async function AddNewproposal() {
                 .from('proposal')
                 .insert([
                     {
-                        address: selectedAddress.label,
+                        address: Array.isArray(selectedAddress) ? '' : selectedAddress?.label || '',
                         coordinates: coordinates,
                         createdBy: user?.id
                     }
@@ -54,8 +54,8 @@ async function AddNewproposal() {
                 <div className='p-5 rounded-lg border shadow-md flex flex-col gap-5 w-full bg-gray-900'>
                     <h2 className='text-gray-500'>Enter Address</h2>
                     <GoogleAddressSearch
-                        selectedAddress={(value) => setSelectedAddress(value)}
-                        setCoordinates={(value) => setCoordinates(value)}
+                        selectedAddress={(value:any) => setSelectedAddress(value)}
+                        setCoordinates={(value:any) => setCoordinates(value)}
                     />
                     <Button
                         disabled={!selectedAddress || !coordinates || loading}

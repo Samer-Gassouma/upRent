@@ -6,7 +6,6 @@ import { createClient } from "@/utils/supabase/server";
 import seeker from "@/components/seeker";
 import landlord from "@/components/landlord";
 import { redirect } from "next/navigation";
-import admin from "@/components/admin";
 
 export default async function Home() {
 	const supabase = createClient();

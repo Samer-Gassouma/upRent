@@ -13,7 +13,7 @@ import { createClient } from "@/utils/supabase/client";
 function EditRecord({ params }: { params: any }) {
 
     const router = useRouter()
-    const [Record, setRecord] = useState([])
+    const [Record, setRecord] = useState([] as any)
     const [loading, setLoading] = useState(false)
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
 
@@ -35,11 +35,11 @@ function EditRecord({ params }: { params: any }) {
             setRecord(data[0])
         }
 
-        if (data?.length <= 0) {
+        if ((data?.length ?? 0) <= 0) {
             router.replace('/')
         }
     }
-    const onSubmitHandler = async (values) => {
+    const onSubmitHandler = async (values:any) => {
         try {
             setLoading(true)
 

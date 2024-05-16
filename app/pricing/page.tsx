@@ -33,15 +33,8 @@ export default function PricingPage() {
 					<div className="w-70">
 						<Card
 							isPressable
-							bordered
-							shadow={false}
-							css={{
-								minHeight: '500px',
-								transform: 'scale(1.02)',
-								transition: 'transform 0.2s ease-in-out'
-							}}
+							shadow='md'
 							className="flex flex-col justify-between w-full"
-
 						>
 							<CardHeader className="flex justify-center items-center flex-col rounded-t-lg bg-gradient-to-tr from-blue-500 to-purple-500">
 								<h3 color="white" className="font-bold">
@@ -71,13 +64,7 @@ export default function PricingPage() {
 					<div className="w-80">
 						<Card
 							isPressable
-							bordered
-							shadow={false}
-							css={{
-								minHeight: '500px',
-								transform: 'scale(1.02)',
-								transition: 'transform 0.2s ease-in-out'
-							}}
+							shadow='md'
 							className="flex flex-col justify-between w-full"
 						>
 							<CardHeader className="flex justify-center items-center flex-col bg-green-500 rounded-t-lg">

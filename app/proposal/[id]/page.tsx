@@ -14,7 +14,13 @@ export default async function page({ params }: { params: any }) {
         console.error(error)
     }
 
-
+    if (!data) {
+        return(
+            <div>
+                loading...
+            </div>
+        )
+    }
     const post = data[0] || null;
     const proposals = await fetch_proposals_by_Post(post.id) || [];
 

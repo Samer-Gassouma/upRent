@@ -1,6 +1,6 @@
 "use client"
 import { Formik } from 'formik'
-import { usePathname, useRouter } from 'next/navigation'
+import { redirect, usePathname, useRouter } from 'next/navigation'
 import { createClient } from "@/utils/supabase/client";
 import React, { useState } from 'react'
 import FileUpload from '@/app/_compoenets/seeker/FileUpload';
@@ -8,22 +8,121 @@ import { Loader } from 'lucide-react'
 import { Select, SelectSection, SelectItem } from "@nextui-org/select";
 import { Input, Textarea } from "@nextui-org/input";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from "@nextui-org/react";
+import rederctFile from './rederctFile';
 
 async function Editproposal({ params }: { params: any }) {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
-
+    const [images, setImages] = useState([])
+    const [submissionState, setSubmissionState] = useState<"idle" | "loading" | "success" | "error">("idle");
+    const [submissionMessage, setSubmissionMessage] = useState("");
+    const [showSubmissionModal, setShowSubmissionModal] = useState(false); 
+    const [finalPush, setFinalPush] = useState(false);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser()
 
+    const { data: connectPoint, error: connectPointError } = await supabase.from('ConnectPoint').select('points').eq('user_id', user?.id)
+    const COONECTPOINT = connectPoint && connectPoint[0].points
     const property_types = [
         { value: 'apartment', label: 'Apartment' },
         { value: 'house', label: 'House' },
-        { value: 'office', label: 'Office' },
-        { value: 'shop', label: 'Shop' },
-    ]
+        { value: 'villa', label: 'Villa' }, ]
+    if (finalPush) {
+        return await rederctFile()
+    }
+    const onSubmitHandler = async (values: any, onclose: any) => {
+        setSubmissionState("loading");
+        setSubmissionMessage("");
+        setShowSubmissionModal(true);
+        onclose()
 
+        try {
+            const { data, error } = await supabase
+                .from('proposal')
+                .update(values)
+                .eq('id', params.id)
+                .select();
 
+            if (data) {
+                console.log(data)
+            }
+            if (error) {
+                console.log(error)
+                setSubmissionState("error");
+                setSubmissionMessage("Error updating proposal.");
+                return;
+            }
 
+            const { data: points, error: pointError } = await supabase.from('ConnectPoint').update({
+                points: COONECTPOINT - 10
+            }).eq('user_id', user?.id).select();
+
+            if (points) {
+                console.log(points)
+            }
+            if (pointError) {
+                console.log(pointError)
+                setSubmissionState("error");
+                setSubmissionMessage("Error updating points.");
+                return;
+            }
+
+            for (const image of images) {
+                console.log(image)
+                const file = image as File;
+                const fileExt = file.name.split('.').pop();
+                const fileName = Date.now().toString();
+
+                const { data, error: uploadError } = await supabase.storage
+                    .from('s3_bucket')
+                    .upload(`${params.id}/${fileName}`, file, {
+                        contentType: `image/${fileExt}`,
+                        upsert: false
+                    }
+                    )
+                console.log(data)
+
+                if (data) {
+                    const imageUrl = process.env.NEXT_PUBLIC_IMAGE_URL + params.id + '/' + fileName
+
+                    const { data, error } = await supabase.from('proposal_Images')
+                        .insert([{
+                            url: imageUrl,
+                            proposal_id: params.id
+                        }]).select()
+                    if (data) {
+                        console.log(data)
+                    }
+                    if (error) {
+                        console.log(error)
+                        setSubmissionState("error");
+                        setSubmissionMessage("Error uploading images.");
+                        return;
+                    }
+                }
+
+                if (uploadError) {
+                    console.log(uploadError)
+                    setSubmissionState("error");
+                    setSubmissionMessage("Error uploading images.");
+                    return;
+                }
+            }
+
+            setSubmissionState("success");
+            setSubmissionMessage("Proposal successfully submitted!");
+        } catch (error) {
+            console.error(error);
+            setSubmissionState("error");
+            setSubmissionMessage("An unexpected error occurred.");
+        }
+    }
+
+    const handleFinalClose = () => {
+        setFinalPush(true)
+        setShowSubmissionModal(false);
+        setSubmissionState("idle");
+        setSubmissionMessage("");
+    };
     return (
         <div className='px-10 md:px-36 my-10'>
             <h2 className='font-bold text-2xl'> Provide More Details About Your proposal</h2>
@@ -36,10 +135,11 @@ async function Editproposal({ params }: { params: any }) {
                 description: '',
                 profileImage: user?.email,
                 fullname: user?.email,
-                record_id: 4
+                active: true
             }}
                 onSubmit={(values) => {
                     console.log(values)
+
                 }}
             >
                 {({
@@ -100,11 +200,14 @@ async function Editproposal({ params }: { params: any }) {
                                 <h2 className='text-lg font-semibold'>Upload Property Images</h2>
                                 <FileUpload
                                     imageList={[]}
-                                    setImages={(value : any) => console.log(value)}
+                                    setImages={(value: any) => setImages(value)}
                                 />
                             </div>
                             <div className='flex justify-center pt-8 gap-5'>
-                                <Button onPress={onOpen} variant="light" className='bg-gradient-to-r from-[#ff8a00] to-[#e52e71]'>
+                                <Button onPress={onOpen} variant="light"
+
+                                    className={'bg-gradient-to-r from-[#ff8a00] to-[#e52e71]' + (COONECTPOINT < 10 ? ' disabled:opacity-50' : '')}
+                                    disabled={COONECTPOINT < 10} >
                                     Publish
                                 </Button>
                                 <Modal
@@ -123,13 +226,17 @@ async function Editproposal({ params }: { params: any }) {
                                                     <p>
                                                         Do u Really want to Publish this proposal?
                                                     </p>
-
                                                 </ModalBody>
                                                 <ModalFooter>
                                                     <Button color="danger" variant="light" onPress={onClose}>
                                                         Close
                                                     </Button>
-                                                    <Button color="primary"  >
+                                                    <Button color="primary" onClick={() => {
+                                                        onSubmitHandler(values, onClose)
+                                                    }}
+                                                        className={(isSubmitting || COONECTPOINT < 10 ? ' disabled:opacity-50' : '')}
+                                                        disabled={isSubmitting || COONECTPOINT < 10}
+                                                    >
                                                         Publish
                                                     </Button>
                                                 </ModalFooter>
@@ -137,15 +244,40 @@ async function Editproposal({ params }: { params: any }) {
                                         )}
                                     </ModalContent>
                                 </Modal>
-
-
                             </div>
                         </div>
                     </form>
                 )}
             </Formik>
+            {/* Submission Status Modal */}
+            <Modal
+                isOpen={showSubmissionModal}
+                onClose={() => handleFinalClose()}
+                placement="top"
+                className='bg-gray-900/20 dark:bg-gray-900/20 backdrop-filter backdrop-blur-sm dark:backdrop-blur-sm dark:bg-opacity-20 bg-opacity-20'
+            >
+                <ModalContent>
+                    <ModalHeader>Submission Status</ModalHeader>
+                    <ModalBody>
+                        {submissionState === "loading" && (
+                            <p>Submitting proposal...</p>
+                        )}
+                        {submissionState === "success" && (
+                            <p className="text-green-500">{submissionMessage}</p>
+                        )}
+                        {submissionState === "error" && (
+                            <p className="text-red-500">{submissionMessage}</p>
+                        )}
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button onClick={() => handleFinalClose()}>Close</Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </div>
     )
 }
+
+
 
 export default Editproposal

@@ -4,13 +4,16 @@ import { Button } from  "@nextui-org/react";
 import { createClient } from "@/utils/supabase/client";
 import React, { useState } from 'react'
 import {Loader}  from 'lucide-react';
-import { useRouter } from 'next/navigation'
+import { useRouter,usePathname } from 'next/navigation'
 
-async function AddNewproposal() {
+async function AddNewproposal({ params }: { params: any }) {
+    const id = params.post_id
+    
     const [selectedAddress, setSelectedAddress] = useState<{ label: string; value: string; } | null[]>([])
     const [coordinates, setCoordinates] = useState()
     const [loading, setLoading] = useState(false)
     const router = useRouter()
+    
     const supabase = createClient()
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -23,7 +26,8 @@ async function AddNewproposal() {
                     {
                         address: Array.isArray(selectedAddress) ? '' : selectedAddress?.label || '',
                         coordinates: coordinates,
-                        createdBy: user?.id
+                        createdBy: user?.id,
+                        record_id: id
                     }
                 ])
                 .select()

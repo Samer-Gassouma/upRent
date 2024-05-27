@@ -21,3 +21,14 @@ export async function fetch_proposals_by_Post(id: string) {
     }
     return data;
 }
+
+export async function fetchPostDetails() {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data, error } = await supabase.from('record').select('*').eq('createdBy', user?.id)
+
+    if (error) {
+        console.error(error)
+    }
+    return data;
+}

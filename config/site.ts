@@ -37,7 +37,7 @@ export const siteConfig = {
 
 		{
 			label: "Create Post",
-			href: "/create-post",
+			href: "/post/new",
 			roles: ['seeker']
 		},
 		{

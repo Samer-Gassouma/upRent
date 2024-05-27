@@ -1,21 +1,14 @@
-import fetchPosts from "@/app/_compoenets/seeker/fetchPosts";
+import fetchPostsByUser from "@/app/_compoenets/seeker/fetchPosts";
 import Link from "next/link";
 import { Card, CardHeader, CardBody, CardFooter, Avatar, Button } from "@nextui-org/react";
 import { Calendar, MapPin, DiamondIcon } from 'lucide-react';
 
 export default async function seeker() {
-    const posts = await fetchPosts() || [];
+    const posts = await fetchPostsByUser() || [];
 
     return (
         <div className="container mx-auto px-4  ">
-            <div className="flex justify-between items-center py-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Posts</h1>
-                <Link href="/post/new">
-                    <Button color="primary">
-                        Create New Post
-                    </Button>
-                </Link>
-            </div>
+           
             {posts.length === 0 && (
                 <div className="flex justify-center items-center h-[50vh]">
                     <DiamondIcon size={48} />

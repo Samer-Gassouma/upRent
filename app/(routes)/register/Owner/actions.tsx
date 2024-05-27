@@ -26,6 +26,14 @@ export async function CreateOwner(formData: FormData) {
     if (error) {
       redirect("/register/Owner?message=Could not authenticate user");
     }
+
+    const {data : pointData, error: pointError} = await supabase.from('ConnectPoint').insert([{user_id: user?.user?.id, points: 30}])
+
+    if (pointError) {
+      redirect("/register/Owner?message=Could not authenticate user");
+      console.log(pointError)
+    }
+
   }
 
   if (error) {

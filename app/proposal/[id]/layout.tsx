@@ -20,9 +20,7 @@ export default async function RootLayout({
         redirect('/login')
     }
 
-    if(role !== 'seeker'){
-        redirect('/')
-    }
+    
     
     return <>{children}</>;
 

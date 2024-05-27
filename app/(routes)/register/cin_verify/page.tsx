@@ -1,8 +1,11 @@
 "use client"
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Image from 'next/image';
 import axios from 'axios';
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from 'next/navigation';
+
 
 enum UploadStatus {
     Idle,
@@ -17,35 +20,73 @@ function IDVerificationPage() {
     const [files, setFiles] = useState([] as File[]);
     const [uploadStatus, setUploadStatus] = useState(UploadStatus.Idle);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const router = useRouter();
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         setFiles((prevFiles: File[]) => [...prevFiles, ...acceptedFiles])
     }, [files]);
 
-    const handleUpload = () => {
+    const handleUpload = async () => {
 
         const formData = new FormData();
         files.forEach(file => {
             formData.append('file', file);
         });
-        if (files.length != 2 ) {
+        if (files.length != 2) {
             setUploadStatus(UploadStatus.Error);
             return;
         }
         setUploadStatus(UploadStatus.Uploading);
 
+        await handleAccountUpload();
+        /*
         axios.post('/api/verify-id', formData, {
             onUploadProgress: (progressEvent) => {
                 const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total ?? 0));
                 setUploadProgress(percentCompleted);
             }
         })
-        .then(response => {
-            setUploadStatus(UploadStatus.Success);
-        })
-        .catch(error => {
+            .then(response => {
+                setUploadStatus(UploadStatus.Success);
+            })
+            .catch(error => {
+                setUploadStatus(UploadStatus.Error);
+            });*/
+
+
+            
+        router.push('/');
+    }
+
+
+    const handleAccountUpload = async () => {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
             setUploadStatus(UploadStatus.Error);
-        });
+            return;
+        }
+
+        const { data, error } = await supabase.from('users').update({
+            verified: true
+        }).eq('user_id', user.id);
+        onUploadProgress: (progressEvent:any) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total ?? 0));
+            setUploadProgress(percentCompleted);
+        }
+        if (error) {
+            setUploadStatus(UploadStatus.Error);
+            console.log(error);
+            return;
+        }
+        
+        setUploadStatus(UploadStatus.Success);
+        if (data) {
+            console.log(data);
+        }
+
+        
+
     }
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
@@ -66,24 +107,24 @@ function IDVerificationPage() {
                                 )}
                                 <p className="text-sm text-gray-500">Please upload a scanned copy of your national ID</p>
                                 <div className='flex justify-center items-center mt-5'>
-                                {files.map((file, index) => (
-                                    <div key={index} className=" p-2">
-                                        <Image key={index} src={URL.createObjectURL(file)} alt="ID Card" width={100} height={100} 
-                                        className='rounded-lg shadow-lg cursor-pointer' 
-                                         />
-                                        <button 
-                                        onClick={
-                                            () => {
-                                                const newFiles = files.filter((_, i) => i !== index);
-                                                setFiles(newFiles);
-                                            }
-                                        
-                                        }
-                                        className="
+                                    {files.map((file, index) => (
+                                        <div key={index} className=" p-2">
+                                            <Image key={index} src={URL.createObjectURL(file)} alt="ID Card" width={100} height={100}
+                                                className='rounded-lg shadow-lg cursor-pointer'
+                                            />
+                                            <button
+                                                onClick={
+                                                    () => {
+                                                        const newFiles = files.filter((_, i) => i !== index);
+                                                        setFiles(newFiles);
+                                                    }
+
+                                                }
+                                                className="
                                         text-white px-2 py-1 rounded-md bg-red-500 ml-2 cursor-pointer
                                         ">Remove</button>
-                                    </div>
-                                ))}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -104,11 +145,11 @@ function IDVerificationPage() {
                                     <p className='text-center font-bold'>Drag and drop your ID here, or click to select files</p>
                             }
                         </div>
-                        <button 
-                        type="button"
-                        onClick={handleUpload}
-                        disabled={uploadStatus === UploadStatus.Uploading || files.length === 0}
-                        className="flex justify-center items-center w-1/2 mt-5 text-white px-2 py-2 rounded-md focus:outline-none bg-blue-600 hover:bg-blue-600 hover:shadow-lg">
+                        <button
+                            type="button"
+                            onClick={handleUpload}
+                            disabled={uploadStatus === UploadStatus.Uploading || files.length === 0}
+                            className="flex justify-center items-center w-1/2 mt-5 text-white px-2 py-2 rounded-md focus:outline-none bg-blue-600 hover:bg-blue-600 hover:shadow-lg">
                             {uploadStatus === UploadStatus.Idle && "Upload"}
                             {uploadStatus === UploadStatus.Uploading && "Uploading..."}
                             {uploadStatus === UploadStatus.Success && "Success"}
@@ -121,5 +162,7 @@ function IDVerificationPage() {
         </div>
     );
 }
+
+
 
 export default IDVerificationPage;

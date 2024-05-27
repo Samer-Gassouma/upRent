@@ -32,12 +32,14 @@ export function Navbar() {
 
 	const [role, setRole] = useState(null);
 	const [user, setUser] = useState([] as any);
+	const [userDetails, setUserDetails] = useState([] as any);
 	const [loading, setLoading] = useState(true);
 	const auth = async () => {
 		try {
 			const { role, user } = await manageAuth();
 			setRole(role);
 			setUser(user);
+
 		}
 		catch (error) {
 			console.log(error);
@@ -56,34 +58,29 @@ export function Navbar() {
 
 
 
-
-
-	/*
 	const searchInput = (
 		<Input
-			aria-label="Search"
+			aria-label="Search"  
 			classNames={{
 				inputWrapper: "bg-default-100",
 				input: "text-sm",
 			}}
 			endContent={
 				<Kbd className="hidden lg:inline-block" keys={["command"]}>
-					K
+					p
 				</Kbd>
 			}
 			labelPlacement="outside"
 			placeholder="Search..."
-			startContent={
-				<SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />
-			}
+
 			type="search"
 		/>
 	);
-*/
 
 
 
-	const renderNavbar = () => { // This function handles rendering the navbar
+
+	const renderNavbar = () => {
 		return (
 			<NextUINavbar maxWidth="xl" position="sticky">
 				<NavbarContent className="basis-1/5 sm:basis-full" justify="start">
@@ -93,6 +90,7 @@ export function Navbar() {
 							<p className="font-bold text-inherit">UpRent</p>
 						</NextLink>
 					</NavbarBrand>
+
 					<ul className="hidden lg:flex gap-4 justify-start ml-2">
 						{siteConfig.navItems.map((item) => (
 							<>
@@ -115,6 +113,7 @@ export function Navbar() {
 						))}
 					</ul>
 				</NavbarContent>
+			
 
 				<NavbarContent
 					className="hidden sm:flex basis-1/5 sm:basis-full"
@@ -123,7 +122,7 @@ export function Navbar() {
 					<NavbarItem className="hidden sm:flex gap-2">
 						<ThemeSwitch />
 					</NavbarItem>
-					{/*<NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem>*/}
+					<NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem>
 					{loading ? (
 						<div className="max-w-[300px] w-full flex items-center gap-3">
 							<div>
@@ -161,7 +160,6 @@ export function Navbar() {
 				</NavbarContent>
 
 				<NavbarMenu>
-					{/*searchInput*/}
 					<div className="mx-4 mt-2 flex flex-col gap-2">
 						{siteConfig.navMenuItems.map((item, index) => (
 							<NavbarMenuItem key={index}>

@@ -17,8 +17,15 @@ export default async function page({ params }: { params: any }) {
         return <div>loading...</div>
     }
     const post = data[0] 
-    const proposals = await fetch_proposals_by_Post(post.id) || [];
+    //const proposals = await fetch_proposals_by_Post(post.id) || [];
+    let recommendations = await fetch_recommendations(post.id) 
+    if (!recommendations) {
+        return <div>loading...</div>
+    }
 
+    if (recommendations.length === 0) {
+        recommendations = await fetch_proposals_by_Post(post.id) || [];
+    }
     return (
         <div className=' my-3 mx-4'>
             {post && (
@@ -27,14 +34,14 @@ export default async function page({ params }: { params: any }) {
                         Your Record : {post.title} <span className='text-gray-500' > at the address {post.address}</span> {' '}
                         <span className='text-gray-500'>created at {post.created_at.split('T')[0]}</span>
                     </h1>
-                    {proposals.length > 0 && (
+                    {recommendations.length > 0 && (
                         <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
 
                             <div className='fixed right-10 h-full md:w-[350px] lg:w-1/3'>
-                                <MapSection proposals={proposals} />
+                                <MapSection proposals={recommendations} />
                             </div>
                             <div className='flex flex-col gap-4'>
-                                {proposals.map((proposal: any) => (
+                                {recommendations.map((proposal: any) => (
                                     <Link href={`/view-proposal/${proposal.id}`} key={proposal.id}>
                                         <Card
                                             isBlurred
@@ -90,7 +97,7 @@ export default async function page({ params }: { params: any }) {
                         </div>
                     )}
 
-                    {proposals.length === 0 && (
+                    {recommendations.length === 0 && (
                         <div className='flex justify-center items-center'>
                             <h1 className='text-2xl font-semibold'>No proposals for this record</h1>
                         </div>
@@ -101,3 +108,13 @@ export default async function page({ params }: { params: any }) {
         </div>
     )
 }
+
+async function fetch_recommendations(recordId:any) {
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc('getRecommendedProposals', { record_id: recordId });
+    if (error) {
+      console.error(error);
+      return []; // Handle error, you can return an empty array or a custom error message
+    }
+    return data;
+  }

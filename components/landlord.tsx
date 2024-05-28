@@ -8,6 +8,8 @@ export default async function LandlordPage() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser()
     const { data: point, error } = await supabase.from('ConnectPoint').select('points').eq('user_id', user?.id)
+
+
     const posts = await fetchPosts() || [];
     return (
         <div className="h-screen flex overflow-hidden">
@@ -54,7 +56,7 @@ export default async function LandlordPage() {
                                 {point && point[0].points < 10 ?
                                     <>
                                         <CustomCard />
-                                        
+
                                     </>
                                     :
 
@@ -74,12 +76,14 @@ export default async function LandlordPage() {
                                                 </div>
                                             </div>
                                             <div className="flex flex-col justify-end">
-                                                {point && point[0].points < 10 ? <Button size="sm" color="danger" >Not Enough Points</Button> :
 
-                                                    <Link href={`/post/details/${post.id}`}>
-                                                        <Button size="sm" color="secondary" >View Details</Button>
-                                                    </Link>
-                                                }
+                                                <Link href={`/post/details/${post.id}`}>
+                                                    <Button size="sm" color="secondary" >View Details</Button>
+                                                </Link>
+
+
+
+
                                             </div>
                                         </CardBody>
                                     </Card>

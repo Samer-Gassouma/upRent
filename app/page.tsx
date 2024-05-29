@@ -66,11 +66,6 @@ export default async function Home() {
 							<h2 className='text-lg'>
 								Efficient, user-friendly and modern renting app.
 							</h2>
-							<Code className="mt-4">
-								<Snippet>
-									This Landing Page need to be updated
-								</Snippet>
-							</Code>
 						</div>
 
 						<div className="flex gap-3">
@@ -106,11 +101,6 @@ export default async function Home() {
 					<h2 className='text-lg'>
 						Efficient, user-friendly and modern renting app.
 					</h2>
-					<Code className="mt-4">
-						<Snippet>
-							This Landing Page need to be updated
-						</Snippet>
-					</Code>
 				</div>
 
 				<div className="flex gap-3">
